@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>⚡ EPS CROSS APP - Pro Edition 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <style>
+        .neo-shadow { box-shadow: 4px 4px 0px 0px #000000; }
+        .neo-btn:active { transform: translate(2px, 2px); box-shadow: 0px 0px 0px 0px #000000; }
+        body {
+            font-family: 'Arial Black', -apple-system, sans-serif;
+            background-color: #0F172A;
+            color: #FFFFFF;
+            -webkit-tap-highlight-color: transparent;
+        }
+        input, select, textarea {
+            font-family: system-ui, sans-serif;
+            font-weight: bold;
+            color: #000000 !important;
+            background-color: #FFFFFF !important;
+        }
+        #qr-reader {
+            background-color: #000000 !important;
+            border: none !important;
+        }
+        #qr-reader * { color: #FFFFFF !important; }
+        #qr-reader button {
+            color: #000000 !important;
+            background-color: #CCFF00 !important;
+            font-weight: bold;
+            padding: 0.6rem 1.2rem;
+            border-radius: 0.5rem;
+            border: 2px solid black;
+            margin: 10px auto !important;
+            display: block !important;
+            text-transform: uppercase;
+            font-size: 12px;
+        }
+        .muscle { fill: #334155; stroke: #0f172a; stroke-width: 1; transition: fill 0.3s ease; }
+        .muscle-primary { fill: #EF4444 !important; } 
+        .muscle-secondary { fill: #FBBF24 !important; } 
+    </style>
+</head>
+<body class="p-4 max-w-md mx-auto min-h-screen flex flex-col justify-between select-none text-white">
+
+    <header class="bg-[#1E293B] border-4 border-black neo-shadow p-4 mb-4 text-center rounded-2xl relative">
+        <div class="absolute top-0 left-0 w-2 h-full bg-[#CCFF00]"></div>
+        <h1 class="text-2xl font-black tracking-tighter text-[#CCFF00]">⚡ WOD & CARDIO APP</h1>
+        <p class="text-[10px] uppercase font-black tracking-widest text-slate-300">EPS HIGH INTENSITY RECOVERY</p>
+    </header>
+
+    <div id="screen-role" class="app-screen flex-grow flex flex-col justify-center space-y-4">
+        <div class="bg-[#1E293B] border-4 border-black p-6 neo-shadow text-center rounded-2xl">
+            <h2 class="text-xl font-black mb-6 uppercase tracking-tight">CHOISIS TON PORTAIL</h2>
+            <button onclick="changeScreen('screen-profile')" class="w-full bg-[#CCFF00] text-black font-black text-lg py-4 px-6 border-4 border-black rounded-xl neo-shadow neo-btn mb-4">
+                🏋️‍♂️ ESPACE ATHLÈTE
+            </button>
+            <button onclick="openTeacherDashboard()" class="w-full bg-[#00FFFF] text-black font-black text-lg py-4 px-6 border-4 border-black rounded-xl neo-shadow neo-btn">
+                ⏱️ COACH / ENSEIGNANT
+            </button>
+        </div>
+    </div>
+
+    <div id="screen-profile" class="app-screen flex-grow hidden flex-col justify-center">
+        <div class="bg-[#1E293B] border-4 border-black p-6 neo-shadow rounded-2xl">
+            <h2 class="text-xl font-black mb-4 uppercase bg-[#FF007F] text-white p-2 text-center rounded-xl">Enregistrement</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-black uppercase mb-1">Prénom :</label>
+                    <input type="text" id="student-firstname" placeholder="Ex: Lucas" class="w-full p-3 border-4 border-black rounded-xl text-md focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-black uppercase mb-1">Nom :</label>
+                    <input type="text" id="student-lastname" placeholder="Ex: Dupont" class="w-full p-3 border-4 border-black rounded-xl text-md focus:outline-none">
+                </div>
+                <button onclick="saveProfile()" class="w-full bg-[#CCFF00] text-black font-black text-md py-3 border-4 border-black rounded-xl neo-shadow neo-btn uppercase">
+                    Valider ➔
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-setup" class="app-screen flex-grow hidden space-y-4">
+        <div class="bg-[#1E293B] border-4 border-black p-4 neo-shadow rounded-2xl space-y-4">
+            <h2 class="text-md font-black uppercase text-center bg-black text-[#CCFF00] p-2 rounded-xl">CRÉER TA SÉANCE</h2>
+            
+            <div>
+                <label class="block text-xs font-black uppercase mb-1 text-slate-200">1. Structure du WOD :</label>
+                <select id="workout-type" onchange="updateSetupUI(); renderSetupExercises();" class="w-full p-3 border-4 border-black rounded-xl bg-white text-black text-sm font-bold focus:outline-none">
+                    <option value="CIRCUIT">CIRCUIT TRAINING (Intervalles)</option>
+                    <option value="TABATA">TABATA (Plusieurs exercices possibles)</option>
+                    <option value="FOR_TIME">FOR TIME (Contre la montre)</option>
+                    <option value="AMRAP">AMRAP (Max de tours)</option>
+                </select>
+            </div>
+
+            <div class="bg-slate-900 p-3 rounded-xl border-2 border-black">
+                <label class="block text-xs font-black uppercase mb-2 text-[#CCFF00]">2. Zone de Fréquence Cardiaque Cible :</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <span class="text-[10px] uppercase font-bold block mb-1">FC Min (BPM) :</span>
+                        <input type="number" id="cfg-fc-min" value="140" class="w-full p-2 border-2 border-black rounded-lg text-center font-bold">
+                    </div>
+                    <div>
+                        <span class="text-[10px] uppercase font-bold block mb-1">FC Max (BPM) :</span>
+                        <input type="number" id="cfg-fc-max" value="170" class="w-full p-2 border-2 border-black rounded-lg text-center font-bold">
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <label id="exercise-selection-label" class="block text-xs font-black uppercase mb-1 text-slate-200">3. Sélection des Exercices :</label>
+                <div class="flex gap-1 mb-2">
+                    <input type="text" id="custom-exercise-name" placeholder="Ajouter un exercice perso..." class="w-full p-2 text-xs border-2 border-black rounded-lg">
+                    <button onclick="addCustomExercise()" class="bg-[#00FFFF] text-black px-3 text-xs font-black rounded-lg border-2 border-black uppercase">Ajouter</button>
+                </div>
+                <div id="exercises-list" class="space-y-2 max-h-48 overflow-y-auto p-2 border-4 border-black rounded-xl bg-slate-900"></div>
+            </div>
+
+            <div id="dynamic-fields" class="space-y-2 border-t-2 border-slate-700 pt-2"></div>
+
+            <button onclick="startSessionConfiguration()" class="w-full bg-[#FF007F] text-white font-black text-md py-4 mt-2 border-4 border-black rounded-xl neo-shadow neo-btn uppercase">
+                💥 ENTRER DANS LA BOX
+            </button>
+        </div>
+    </div>
+
+    <div id="screen-timer" class="app-screen flex-grow hidden flex-col justify-between bg-[#1E293B] border-4 border-black p-4 neo-shadow rounded-2xl">
+        <div>
+            <div class="flex justify-between items-center mb-1">
+                <span id="timer-type-badge" class="bg-[#CCFF00] text-black px-3 py-1 text-xs font-black uppercase rounded-lg border border-black">WOD</span>
+                <span id="timer-status-badge" class="bg-red-500 text-white px-3 py-1 text-xs font-black uppercase rounded-lg border border-black">TRAVAIL</span>
+            </div>
+            <div id="timer-display" class="text-5xl font-black my-3 font-mono tracking-tighter bg-black py-6 border-4 border-slate-900 rounded-2xl text-[#CCFF00]">00:00.0</div>
+            <div id="timer-subinfo" class="text-xs font-black uppercase text-white bg-slate-900 p-3 rounded-xl border border-slate-700 mb-2">Exercice en cours</div>
+            <div id="amrap-live-counter" class="text-md font-black text-[#00FFFF] uppercase hidden">Tours validés : <span id="amrap-count-val" class="text-2xl text-white">0</span></div>
+        </div>
+        <div id="workout-progress-box" class="bg-slate-950 p-3 border-2 border-slate-800 rounded-xl max-h-28 overflow-y-auto mb-3 text-xs font-bold space-y-1"></div>
+        <div class="space-y-2">
+            <button id="btn-timer-action" onclick="handleTimerAction()" class="w-full bg-[#CCFF00] text-black font-black text-xl py-4 border-4 border-black rounded-xl neo-shadow neo-btn uppercase">ACTION CHRONO</button>
+            <button onclick="terminateWorkoutEarly()" class="w-full bg-slate-800 text-slate-400 font-black text-[10px] py-2 border-2 border-black rounded-xl uppercase">Abandonner / Finir</button>
+        </div>
+    </div>
+
+    <div id="screen-heartrate" class="app-screen flex-grow hidden flex-col justify-center bg-[#FF5500] p-6 border-4 border-black neo-shadow text-center rounded-2xl">
+        <div class="bg-black p-5 border-4 border-slate-900 rounded-2xl">
+            <h2 id="hr-title" class="text-2xl font-black uppercase mb-2 text-[#CCFF00]">PRÉPARATION...</h2>
+            <div id="hr-timer" class="text-7xl font-black my-4 font-mono text-white">5</div>
+            <p class="text-xs font-black uppercase text-slate-300">Trouvez votre pouls. Le test est inclus dans votre repos.</p>
+        </div>
+    </div>
+
+    <div id="screen-form" class="app-screen flex-grow hidden space-y-3 overflow-y-auto">
+        <div class="bg-[#1E293B] p-4 border-4 border-black neo-shadow space-y-3 rounded-2xl">
+            <div class="bg-black text-[#CCFF00] p-3 rounded-xl text-center border-2 border-slate-800">
+                <span id="form-rest-countdown" class="text-3xl font-mono font-black text-white">00:00</span>
+            </div>
+            <h2 id="form-title-context" class="text-xs font-black uppercase text-center bg-[#FF007F] text-white p-2 rounded-xl">Bilan physiologique</h2>
+            <div>
+                <label class="block text-xs font-black uppercase mb-1">Pulsations (Sur 15 secondes) :</label>
+                <input type="number" id="input-fc" placeholder="Ex: 38" class="w-full p-3 border-4 border-black rounded-xl font-bold">
+            </div>
+            <div>
+                <label class="block text-xs font-black uppercase mb-1">Difficulté perçue (RPE) :</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <button id="rpe-Facile" onclick="setRessenti('Facile')" class="btn-ressenti p-2 border-2 border-black rounded-xl font-black text-xs bg-white text-black">🟢 Facile</button>
+                    <button id="rpe-Moyen" onclick="setRessenti('Moyen')" class="btn-ressenti p-2 border-2 border-black rounded-xl font-black text-xs bg-white text-black">🟡 Moyen</button>
+                    <button id="rpe-Dur" onclick="setRessenti('Dur')" class="btn-ressenti p-2 border-2 border-black rounded-xl font-black text-xs bg-white text-black">🟠 Dur</button>
+                    <button id="rpe-Max" onclick="setRessenti('Max')" class="btn-ressenti p-2 border-2 border-black rounded-xl font-black text-xs bg-white text-black">🔴 Max</button>
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-black uppercase mb-1">Sensations :</label>
+                <input type="text" id="input-sensations" placeholder="Ex: Jambes lourdes, souffle court..." class="w-full p-3 border-4 border-black rounded-xl text-xs">
+            </div>
+            <button id="btn-submit-metrics" onclick="submitFormMetrics()" class="w-full bg-[#00FFFF] text-black font-black text-md py-3 border-4 border-black rounded-xl neo-shadow neo-btn uppercase">Enregistrer ➔</button>
+        </div>
+    </div>
+
+    <div id="screen-summary" class="app-screen flex-grow hidden space-y-4">
+        <div class="bg-[#1E293B] p-4 border-4 border-black neo-shadow rounded-2xl space-y-4">
+            <h2 class="text-xl font-black text-[#CCFF00] uppercase text-center">💪 DEBRIEFING DIRECT</h2>
+            
+            <div class="bg-slate-950 p-3 border-2 border-slate-800 rounded-xl text-xs space-y-2">
+                <p><span class="text-slate-400">Forme de travail :</span> <span id="summary-type" class="font-bold text-[#00FFFF]"></span></p>
+                <p><span class="text-slate-400">Zone FC ciblée :</span> <span id="summary-fc-target" class="font-bold text-amber-400"></span></p>
+                <div class="border-t border-slate-800 my-2"></div>
+                <div id="summary-rounds-details" class="space-y-2 max-h-36 overflow-y-auto text-[11px]"></div>
+            </div>
+
+            <div class="bg-slate-900 border-4 border-black p-3 rounded-xl flex flex-col items-center">
+                <span class="text-[10px] font-black uppercase text-[#CCFF00] mb-2">📊 Impact Musculaire Anatomique</span>
+                <div class="flex justify-center space-x-6">
+                    <svg width="85" height="150" viewBox="0 0 100 180" class="bg-slate-955 rounded-lg p-1 border border-slate-800">
+                        <text x="5" y="15" fill="#94a3b8" font-size="8" font-weight="bold">AVANT</text>
+                        <path d="M44,22 C44,14 56,14 56,22 C56,25 53,28 50,30 C47,28 44,25 44,22 Z" class="muscle" id="m-tête"/>
+                        <path d="M47,30 L53,30 L52,35 L48,35 Z" class="muscle"/>
+                        <path d="M33,37 C30,37 27,42 27,47 C27,51 31,51 34,48 Z" class="muscle" id="m-biceps-g"/>
+                        <path d="M67,37 C70,37 73,42 73,47 C73,51 69,51 66,48 Z" class="muscle" id="m-biceps-d"/>
+                        <path d="M35,37 L50,39 L50,55 L34,53 Z" class="muscle" id="m-pectoraux"/>
+                        <path d="M65,37 L50,39 L50,55 L66,53 Z" class="muscle" id="m-pectoraux"/>
+                        <path d="M36,55 L50,56 L50,82 L38,80 Z" class="muscle" id="m-abdos"/>
+                        <path d="M64,55 L50,56 L50,82 L62,80 Z" class="muscle" id="m-abdos"/>
+                        <path d="M26,48 C25,55 24,66 22,74 C21,78 24,80 25,76 C27,68 29,58 30,51 Z" class="muscle" id="m-biceps-g"/>
+                        <path d="M74,48 C75,55 76,66 78,74 C79,78 76,80 75,76 C73,68 71,58 70,51 Z" class="muscle" id="m-biceps-d"/>
+                        <path d="M37,84 C33,96 30,115 32,132 C34,133 39,133 42,125 C45,114 47,97 46,84 Z" class="muscle" id="m-quads-g"/>
+                        <path d="M63,84 C67,96 70,115 68,132 C66,133 61,133 58,125 C55,114 53,97 54,84 Z" class="muscle" id="m-quads-d"/>
+                        <path d="M32,135 C31,146 32,160 34,169 L38,169 C39,158 40,146 41,134 Z" class="muscle" id="m-quads-g"/>
+                        <path d="M68,135 C69,146 68,160 66,169 L62,169 C61,158 60,146 59,134 Z" class="muscle" id="m-quads-d"/>
+                    </svg>
+                    <svg width="85" height="150" viewBox="0 0 100 180" class="bg-slate-955 rounded-lg p-1 border border-slate-800">
+                        <text x="5" y="15" fill="#94a3b8" font-size="8" font-weight="bold">ARRIÈRE</text>
+                        <path d="M44,22 C44,14 56,14 56,22 C56,25 53,28 50,30 C47,28 44,25 44,22 Z" class="muscle"/>
+                        <path d="M34,37 L50,35 L66,37 L63,65 L50,70 L37,65 Z" class="muscle" id="m-dorsaux"/>
+                        <path d="M37,65 L50,70 L63,65 L61,78 L50,80 L39,78 Z" class="muscle" id="m-dorsaux"/>
+                        <path d="M38,79 L50,82 L50,99 L36,94 C35,88 36,82 38,79 Z" class="muscle" id="m-fessiers"/>
+                        <path d="M62,79 L50,82 L50,99 L64,94 C65,88 64,82 62,79 Z" class="muscle" id="m-fessiers"/>
+                        <path d="M35,96 C34,108 32,124 33,134 C36,135 41,131 43,123 C44,115 46,104 47,97 Z" class="muscle" id="m-ischios-g"/>
+                        <path d="M65,96 C66,108 68,124 67,134 C64,135 59,131 57,123 C56,115 54,104 53,97 Z" class="muscle" id="m-ischios-d"/>
+                        <path d="M33,136 C31,144 32,156 34,169 L39,169 C41,158 41,146 41,135 Z" class="muscle" id="m-ischios-g"/>
+                        <path d="M67,136 C69,144 68,156 66,169 L61,169 C59,158 59,146 59,135 Z" class="muscle" id="m-ischios-d"/>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="flex flex-col items-center bg-white p-4 border-4 border-black rounded-xl">
+                <div id="qrcode-container" class="p-2 bg-white flex justify-center items-center min-w-[200px] min-h-[200px]"></div>
+            </div>
+
+            <button onclick="resetApp()" class="w-full bg-slate-800 text-white font-black text-md py-3 border-4 border-black rounded-xl uppercase">🏠 Quitter la box</button>
+        </div>
+    </div>
+
+    <div id="screen-teacher" class="app-screen flex-grow hidden space-y-4">
+        <div class="bg-[#1E293B] border-4 border-black p-4 neo-shadow rounded-2xl">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-black uppercase text-[#00FFFF]">Console Coach</h2>
+                <button onclick="closeTeacherDashboard()" class="bg-black text-white text-xs px-3 py-1.5 font-bold rounded-lg border border-slate-700">Quitter</button>
+            </div>
+            
+            <div class="overflow-hidden border-4 border-black rounded-xl bg-black mb-4 min-h-[250px] relative">
+                <div id="qr-reader" class="w-full"></div>
+            </div>
+            
+            <div id="scan-result" class="hidden p-3 bg-slate-900 border-2 border-slate-700 rounded-xl text-xs font-mono space-y-2 max-h-56 overflow-y-auto"></div>
+            <button id="btn-pdf" disabled onclick="generatePDFReport()" class="w-full bg-[#00FFFF] text-black font-black text-md py-3 border-4 border-black rounded-xl neo-shadow neo-btn uppercase opacity-50 cursor-not-allowed">📄 Extraire la Fiche PDF</button>
+        </div>
+    </div>
+
+    <footer class="mt-4 text-center text-[9px] font-black text-slate-400 uppercase tracking-widest">
+        CROSS TRAINING PERFORMANCE HUB • RECOVERY ALGORITHM • 2026
+    </footer>
+
+    <script>
+        let EXERCISES_DATABASE = [
+            { name: "Squats", primary: ["m-quads-g", "m-quads-d"], secondary: ["m-fessiers"] },
+            { name: "Pompes", primary: ["m-pectoraux"], secondary: ["m-abdos", "m-biceps-g", "m-biceps-d"] },
+            { name: "Burpees", primary: ["m-quads-g", "m-quads-d", "m-pectoraux"], secondary: ["m-fessiers", "m-abdos"] },
+            { name: "Gainage ventral", primary: ["m-abdos"], secondary: ["m-dorsaux"] },
+            { name: "Fentes alternées", primary: ["m-quads-g", "m-quads-d"], secondary: ["m-ischios-g", "m-ischios-d", "m-fessiers"] },
+            { name: "Jumping Jacks", primary: ["m-quads-g", "m-quads-d", "m-ischios-g", "m-ischios-d"], secondary: ["m-abdos"] },
+            { name: "Mountain Climbers", primary: ["m-abdos", "m-quads-g", "m-quads-d"], secondary: ["m-pectoraux"] },
+            { name: "Dips sur banc", primary: ["m-biceps-g", "m-biceps-d"], secondary: ["m-pectoraux"] },
+            { name: "Crunchs (Abdos)", primary: ["m-abdos"], secondary: [] },
+            { name: "Squats Sautés", primary: ["m-quads-g", "m-quads-d", "m-fessiers"], secondary: ["m-ischios-g", "m-ischios-d"] }
+        ];
+        
+        let state = {
+            student: { firstname: '', lastname: '' },
+            workout: { type: 'CIRCUIT', selectedExercises: [], workTime: 20, rounds: 3, restTime: 90, fcMinTarget: 140, fcMaxTarget: 170, displayWorkTime: '', displayRestTime: '' },
+            currentRound: 1,
+            metrics: [],
+            currentRessenti: '',
+            timeline: [],
+            timelineIndex: 0,
+            timerInterval: null,
+            bgRestInterval: null,
+            backgroundForTimeInterval: null,
+            timerRemainingMs: 0,
+            timerElapsedMs: 0,
+            restTotalRemainingMs: 0,
+            isTimerRunning: false,
+            formSubmittedForCurrentRest: false,
+            restTimeIsFinished: false,
+            amrapRoundsCompleted: 0,
+            scannedData: null,
+            html5QrScanner: null
+        };
+
+        let audioCtx = null;
+        function playBip(pitch = 440, duration = 0.1) {
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                let osc = audioCtx.createOscillator();
+                let gainNode = audioCtx.createGain();
+                osc.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                osc.frequency.value = pitch;
+                gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch(e) { console.log("Audio bloqué"); }
+        }
+
+        window.onload = function() { renderSetupExercises(); updateSetupUI(); };
+
+        function changeScreen(screenId) {
+            document.querySelectorAll('.app-screen').forEach(s => s.classList.add('hidden'));
+            document.getElementById(screenId).classList.remove('hidden');
+            window.scrollTo(0, 0);
+        }
+
+        function parseTimeToSeconds(inputStr) {
+            inputStr = String(inputStr).trim().replace(':', "'");
+            if (inputStr.includes("'")) {
+                let parts = inputStr.split("'");
+                let minutes = parseFloat(parts[0]) || 0;
+                let seconds = parseFloat(parts[1]) || 0;
+                return Math.round((minutes * 60) + seconds);
+            }
+            let val = parseFloat(inputStr);
+            if (val < 15) return Math.round(val * 60);
+            return Math.round(val);
+        }
+
+        function renderSetupExercises() {
+            const container = document.getElementById('exercises-list');
+            const type = document.getElementById('workout-type').value;
+            const label = document.getElementById('exercise-selection-label');
+            container.innerHTML = '';
+            
+            if (type === 'TABATA') {
+                label.innerText = "3. Sélectionne les Exercices du Tabata (1 Exercice = 1 Bloc de 4 min) :";
+            } else {
+                label.innerText = "3. Sélection des Exercices (Plusieurs choix possibles) :";
+            }
+            
+            EXERCISES_DATABASE.forEach((ex, idx) => {
+                const hideQty = (type === 'CIRCUIT' || type === 'TABATA') ? 'hidden' : '';
+                container.innerHTML += `
+                    <div class="flex items-center justify-between p-2 bg-slate-800 border-2 border-slate-700 rounded-xl text-xs">
+                        <label class="flex items-center space-x-2 cursor-pointer text-white">
+                            <input type="checkbox" name="exercise-selection" value="${ex.name}" id="check-ex-${idx}" class="exercise-checkbox w-4 h-4 accent-[#CCFF00] rounded">
+                            <span class="font-black uppercase tracking-tight">${ex.name}</span>
+                        </label>
+                        <div class="flex items-center space-x-1 ${hideQty}">
+                            <span class="text-[10px] font-black text-slate-300">Reps :</span>
+                            <input type="number" id="rep-val-${idx}" value="10" class="w-12 p-1 border border-black rounded-lg font-bold text-center bg-white text-black">
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function addCustomExercise() {
+            const input = document.getElementById('custom-exercise-name');
+            const name = input.value.trim();
+            if(!name) return;
+            EXERCISES_DATABASE.push({ name: name, primary: ["m-abdos"], secondary: ["m-dorsaux"] });
+            input.value = '';
+            renderSetupExercises();
+        }
+
+        function updateSetupUI() {
+            const type = document.getElementById('workout-type').value;
+            const configContainer = document.getElementById('dynamic-fields');
+            
+            let html = `
+                <div class="bg-slate-900 p-3 rounded-xl border-2 border-black">
+                    <label class="block text-xs font-black uppercase mb-1 text-[#CCFF00]">4. Configuration des Temps & Options :</label>
+            `;
+
+            if (type === 'CIRCUIT') {
+                html += `
+                    <div class="grid grid-cols-2 gap-2 mb-2">
+                        <div>
+                            <span class="text-[10px] font-bold block mb-1">Effort (secs) :</span>
+                            <input type="number" id="cfg-circ-work" value="30" class="w-full p-2 border-2 border-black rounded-lg text-center">
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-bold block mb-1">Transition (secs) :</span>
+                            <input type="number" id="cfg-circ-rest" value="15" class="w-full p-2 border-2 border-black rounded-lg text-center">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <span class="text-[10px] font-bold block mb-1">Nb de Tours :</span>
+                            <input type="number" id="cfg-circ-rounds" value="3" class="w-full p-2 border-2 border-black rounded-lg text-center">
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-bold block mb-1">Repos Long :</span>
+                            <input type="text" id="cfg-circ-longrest" value="1'30" class="w-full p-2 border-2 border-black rounded-lg text-center font-bold">
+                        </div>
+                    </div>
+                `;
+            } else if (type === 'TABATA') {
+                html += `
+                    <p class="text-[11px] text-slate-300 font-bold mb-2">Chaque exercice choisi fera l'objet d'un Tabata complet indépendant (8 séries de 20s/10s).</p>
+                    <div>
+                        <span class="text-[10px] font-bold block mb-1">Repos de transition entre chaque Tabata (ex: 1'30) :</span>
+                        <input type="text" id="cfg-tabata-rest" value="1'30" class="w-full p-2 border-2 border-black rounded-lg text-center font-bold">
+                    </div>
+                `;
+            } else if (type === 'FOR_TIME') {
+                html += `
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <span class="text-[10px] font-bold block mb-1">Nombre de Rounds :</span>
+                            <input type="number" id="cfg-rounds" value="5" class="w-full p-2 border-2 border-black rounded-lg text-center">
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-bold block mb-1">Repos imposé :</span>
+                            <input type="text" id="cfg-resttime" value="2'00" class="w-full p-2 border-2 border-black rounded-lg text-center font-bold">
+                        </div>
+                    </div>
+                `;
+            } else if (type === 'AMRAP') {
+                html += `
+                    <div>
+                        <span class="text-[10px] font-bold block mb-1">Durée totale du WOD (ex: 15'00) :</span>
+                        <input type="text" id="cfg-worktime" value="15'00" class="w-full p-2 border-2 border-black rounded-lg text-center font-bold">
+                    </div>
+                `;
+            }
+            html += `</div>`;
+            configContainer.innerHTML = html;
+        }
+
+        function saveProfile() {
+            const fn = document.getElementById('student-firstname').value.trim();
+            const ln = document.getElementById('student-lastname').value.trim();
+            if(!fn || !ln) return;
+            state.student.firstname = fn; state.student.lastname = ln;
+            changeScreen('screen-setup');
+        }
+
+        function startSessionConfiguration() {
+            state.workout.fcMinTarget = parseInt(document.getElementById('cfg-fc-min').value) || 140;
+            state.workout.fcMaxTarget = parseInt(document.getElementById('cfg-fc-max').value) || 170;
+            
+            const checkboxes = document.querySelectorAll('.exercise-checkbox');
+            state.workout.selectedExercises = [];
+            
+            checkboxes.forEach((cb, idx) => {
+                if (cb.checked) {
+                    let val = document.getElementById(`rep-val-${idx}`) ? parseInt(document.getElementById(`rep-val-${idx}`).value) : null;
+                    state.workout.selectedExercises.push({ name: cb.value, qty: val });
+                }
+            });
+
+            if (state.workout.selectedExercises.length === 0) {
+                alert("Veuillez sélectionner au moins un exercice.");
+                return;
+            }
+
+            const type = document.getElementById('workout-type').value;
+            state.workout.type = type;
+            state.currentRound = 1;
+            state.metrics = [];
+            state.timeline = [];
+            state.timelineIndex = 0;
+            state.amrapRoundsCompleted = 0;
+
+            if (type === 'AMRAP') {
+                let durationInput = document.getElementById('cfg-worktime').value || "15'00";
+                state.workout.workTime = parseTimeToSeconds(durationInput);
+                state.workout.displayWorkTime = durationInput;
+                state.workout.displayRestTime = "N/A (Continu)";
+                state.timerRemainingMs = state.workout.workTime * 1000;
+                document.getElementById('amrap-live-counter').classList.remove('hidden');
+            } else if (type === 'FOR_TIME') {
+                state.workout.rounds = parseInt(document.getElementById('cfg-rounds').value) || 5;
+                let restInput = document.getElementById('cfg-resttime').value || "2'00";
+                state.workout.restTime = parseTimeToSeconds(restInput);
+                state.workout.displayWorkTime = "Chrono croissant (Max effort)";
+                state.workout.displayRestTime = restInput + " par round";
+                state.timerElapsedMs = 0;
+            } else if (type === 'TABATA') {
+                let restInput = document.getElementById('cfg-tabata-rest').value || "1'30";
+                state.workout.restTime = parseTimeToSeconds(restInput);
+                state.workout.displayWorkTime = "20s effort / 10s récup";
+                state.workout.displayRestTime = restInput + " entre blocs";
+                state.workout.rounds = state.workout.selectedExercises.length; 
+
+                state.workout.selectedExercises.forEach((ex, eIdx) => {
+                    for (let s = 1; s <= 8; s++) {
+                        state.timeline.push({ 
+                            type: 'TRAVAIL', 
+                            durationSec: 20, 
+                            label: `${ex.name} (Série ${s}/8)`,
+                            exerciseIndex: eIdx,
+                            isEndOfTabata: (s === 8) 
+                        });
+                        if (s < 8) {
+                            state.timeline.push({ type: 'RÉCUPÉRATION', durationSec: 10, label: `Récupération Série ${s}/8` });
+                        }
+                    }
+                });
+                state.timerRemainingMs = state.timeline[0].durationSec * 1000;
+            } else if (type === 'CIRCUIT') {
+                const rounds = parseInt(document.getElementById('cfg-circ-rounds').value) || 3;
+                const work = parseInt(document.getElementById('cfg-circ-work').value) || 30;
+                const rest = parseInt(document.getElementById('cfg-circ-rest').value) || 15;
+                let longRestInput = document.getElementById('cfg-circ-longrest').value || "1'30";
+                
+                state.workout.restTime = parseTimeToSeconds(longRestInput);
+                state.workout.displayWorkTime = `${work}s effort`;
+                state.workout.displayRestTime = `${rest}s (Atelier) / ${longRestInput} (Tour)`;
+                state.workout.rounds = rounds;
+
+                for (let r = 1; r <= rounds; r++) {
+                    state.workout.selectedExercises.forEach((ex, eIdx) => {
+                        state.timeline.push({ type: 'TRAVAIL', durationSec: work, label: `${ex.name}`, isEndOfRound: (eIdx === state.workout.selectedExercises.length - 1), roundNumber: r });
+                        if (eIdx < state.workout.selectedExercises.length - 1) {
+                            state.timeline.push({ type: 'RÉCUPÉRATION', durationSec: rest, label: `Changement d'atelier` });
+                        }
+                    });
+                }
+                state.timerRemainingMs = state.timeline[0].durationSec * 1000;
+            }
+
+            initTimerUI();
+            changeScreen('screen-timer');
+            execute5sCountdown();
+        }
+
+        function execute5sCountdown() {
+            if(state.timerInterval) clearInterval(state.timerInterval);
+            let count = 5;
+            document.getElementById('timer-status-badge').innerText = "STANDBY";
+            document.getElementById('timer-display').innerText = `00:05.0`;
+            
+            state.timerInterval = setInterval(() => {
+                count--;
+                if(count > 0) {
+                    document.getElementById('timer-display').innerText = `00:0${count}.0`;
+                    if(count <= 3) playBip(440, 0.08);
+                } else {
+                    clearInterval(state.timerInterval);
+                    playBip(880, 0.3);
+                    launchChronoEngine();
+                }
+            }, 1000);
+        }
+
+        function initTimerUI() {
+            document.getElementById('timer-type-badge').innerText = state.workout.type;
+            const progressBox = document.getElementById('workout-progress-box');
+            const actionBtn = document.getElementById('btn-timer-action');
+            
+            // SUPPRESSION / MASQUAGE DU BOUTON SI CIRCUIT OU TABATA (TEMPS AUTOMATISÉ)
+            if (state.workout.type === 'CIRCUIT' || state.workout.type === 'TABATA') {
+                actionBtn.classList.add('hidden');
+                progressBox.innerHTML = state.workout.selectedExercises.map((ex, i) => `• [Bloc ${i+1}] ${ex.name}`).join('<br>');
+                document.getElementById('timer-subinfo').innerText = state.timeline[0].label;
+            } else {
+                actionBtn.classList.remove('hidden');
+                if (state.workout.type === 'AMRAP') {
+                    actionBtn.innerText = "🔄 TOUR VALIDÉ !";
+                    actionBtn.className = "w-full bg-[#00FFFF] text-black font-black text-xl py-4 border-4 border-black rounded-xl neo-shadow neo-btn uppercase";
+                } else if (state.workout.type === 'FOR_TIME') {
+                    actionBtn.innerText = "🏁 ROUND FINI !";
+                    actionBtn.className = "w-full bg-[#CCFF00] text-black font-black text-xl py-4 border-4 border-black rounded-xl neo-shadow neo-btn uppercase";
+                }
+                progressBox.innerHTML = state.workout.selectedExercises.map(ex => `• ${ex.name} ➔ <span class="text-[#CCFF00]">${ex.qty ? ex.qty + ' reps' : 'Max'}</span>`).join('<br>');
+            }
+        }
+
+        function launchChronoEngine() {
+            if(state.timerInterval) clearInterval(state.timerInterval);
+            state.isTimerRunning = true;
+            
+            let currentPhaseType = (state.workout.type === 'CIRCUIT' || state.workout.type === 'TABATA') ? state.timeline[state.timelineIndex].type : "TRAVAIL";
+            document.getElementById('timer-status-badge').innerText = currentPhaseType;
+            let lastTime = Date.now();
+            
+            state.timerInterval = setInterval(() => {
+                const delta = Date.now() - lastTime;
+                lastTime = Date.now();
+
+                if (state.workout.type === 'FOR_TIME') {
+                    state.timerElapsedMs += delta;
+                    renderChronoDisplay(state.timerElapsedMs);
+                } else {
+                    state.timerRemainingMs -= delta;
+                    let lastSec = Math.ceil((state.timerRemainingMs + delta) / 1000);
+                    let currSec = Math.ceil(state.timerRemainingMs / 1000);
+                    if (currSec !== lastSec && currSec <= 3 && currSec > 0) playBip(440, 0.05);
+                    if (state.timerRemainingMs <= 0) {
+                        state.timerRemainingMs = 0;
+                        clearInterval(state.timerInterval);
+                        playBip(660, 0.25);
+                        handlePhaseTransition();
+                    }
+                    renderChronoDisplay(state.timerRemainingMs);
+                }
+            }, 50);
+        }
+
+        function renderChronoDisplay(msTotal) {
+            let totalSeconds = Math.floor(msTotal / 1000);
+            let ms = Math.floor((msTotal % 1000) / 100);
+            let mins = Math.floor(totalSeconds / 60);
+            let secs = totalSeconds % 60;
+            document.getElementById('timer-display').innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}.${ms}`;
+        }
+
+        function handleTimerAction() {
+            if (state.workout.type === 'AMRAP') {
+                state.amrapRoundsCompleted++;
+                document.getElementById('amrap-count-val').innerText = state.amrapRoundsCompleted;
+                playBip(587.33, 0.1);
+            } else if (state.workout.type === 'FOR_TIME') {
+                clearInterval(state.timerInterval);
+                state.workout.lastSnapTime = document.getElementById('timer-display').innerText;
+                
+                let lastTimeBg = Date.now();
+                state.backgroundForTimeInterval = setInterval(() => {
+                    state.timerElapsedMs += (Date.now() - lastTimeBg);
+                    lastTimeBg = Date.now();
+                }, 50);
+                
+                triggerRestSequence(state.workout.restTime, `Round ${state.currentRound}`);
+            }
+        }
+
+        function handlePhaseTransition() {
+            if (state.workout.type === 'AMRAP') {
+                triggerRestSequence(60, `Bilan Final AMRAP`);
+            } else if (state.workout.type === 'TABATA') {
+                const currentPhase = state.timeline[state.timelineIndex];
+                if (currentPhase.type === 'TRAVAIL' && currentPhase.isEndOfTabata) {
+                    const currentExName = state.workout.selectedExercises[currentPhase.exerciseIndex].name;
+                    triggerRestSequence(state.workout.restTime, `Tabata - ${currentExName}`);
+                } else {
+                    state.timelineIndex++;
+                    if (state.timelineIndex < state.timeline.length) {
+                        let nextPhase = state.timeline[state.timelineIndex];
+                        document.getElementById('timer-subinfo').innerText = nextPhase.label;
+                        document.getElementById('timer-status-badge').innerText = nextPhase.type;
+                        state.timerRemainingMs = nextPhase.durationSec * 1000;
+                        launchChronoEngine();
+                    } else {
+                        triggerRestSequence(60, `Bilan Final Tabata`);
+                    }
+                }
+            } else if (state.workout.type === 'CIRCUIT') {
+                const currentPhase = state.timeline[state.timelineIndex];
+                if (currentPhase.type === 'TRAVAIL' && currentPhase.isEndOfRound) {
+                    triggerRestSequence(state.workout.restTime, `Round ${currentPhase.roundNumber}`);
+                } else {
+                    state.timelineIndex++;
+                    if (state.timelineIndex < state.timeline.length) {
+                        const nextPhase = state.timeline[state.timelineIndex];
+                        document.getElementById('timer-subinfo').innerText = nextPhase.label;
+                        document.getElementById('timer-status-badge').innerText = nextPhase.type;
+                        state.timerRemainingMs = nextPhase.durationSec * 1000;
+                        launchChronoEngine();
+                    } else {
+                        triggerRestSequence(60, `Bilan Final Circuit`);
+                    }
+                }
+            }
+        }
+
+        function triggerRestSequence(secs, label) {
+            if(state.timerInterval) clearInterval(state.timerInterval);
+            if(state.bgRestInterval) clearInterval(state.bgRestInterval);
+            
+            state.restTotalRemainingMs = secs * 1000;
+            state.formSubmittedForCurrentRest = false;
+            state.restTimeIsFinished = false;
+            state.currentRoundLabel = label;
+
+            const btnSubmit = document.getElementById('btn-submit-metrics');
+            btnSubmit.innerText = "Enregistrer ➔";
+            btnSubmit.disabled = false;
+            btnSubmit.className = "w-full bg-[#00FFFF] text-black font-black text-md py-3 border-4 border-black rounded-xl neo-shadow neo-btn uppercase";
+
+            state.bgRestInterval = setInterval(() => {
+                state.restTotalRemainingMs -= 200;
+                
+                if(state.restTotalRemainingMs <= 0) {
+                    state.restTotalRemainingMs = 0;
+                    clearInterval(state.bgRestInterval);
+                    state.restTimeIsFinished = true;
+                    
+                    if(state.formSubmittedForCurrentRest) {
+                        executeTransitionAfterRestFinished();
+                    } else {
+                        forceAutoSubmitOnTimeout();
+                    }
+                }
+                let totalSecs = Math.ceil(state.restTotalRemainingMs / 1000);
+                document.getElementById('form-rest-countdown').innerText = `${Math.floor(totalSecs/60)}:${(totalSecs%60).toString().padStart(2,'0')}`;
+            }, 200);
+
+            changeScreen('screen-heartrate');
+            let hrCount = 5;
+            document.getElementById('hr-title').innerText = "PRISE DE POULS (15s)";
+            let hrInt = setInterval(() => {
+                hrCount--;
+                document.getElementById('hr-timer').innerText = hrCount;
+                if(hrCount <= 0) {
+                    clearInterval(hrInt);
+                    document.getElementById('hr-title').innerText = "🔥 COMPTEZ !";
+                    playBip(520, 0.2);
+                    let measure = 15;
+                    let measInt = setInterval(() => {
+                        measure--;
+                        document.getElementById('hr-timer').innerText = measure;
+                        if(measure <= 0) {
+                            clearInterval(measInt);
+                            playBip(520, 0.2);
+                            changeScreen('screen-form');
+                        }
+                    }, 1000);
+                }
+            }, 1000);
+        }
+
+        function setRessenti(val) {
+            state.currentRessenti = val;
+            const mappingColors = {
+                'Facile': { selected: 'bg-green-500 text-white', default: 'bg-white text-black' },
+                'Moyen': { selected: 'bg-yellow-400 text-black', default: 'bg-white text-black' },
+                'Dur': { selected: 'bg-orange-500 text-white', default: 'bg-white text-black' },
+                'Max': { selected: 'bg-red-600 text-white', default: 'bg-white text-black' }
+            };
+
+            Object.keys(mappingColors).forEach(k => {
+                const btn = document.getElementById(`rpe-${k}`);
+                if (k === val) {
+                    btn.className = `btn-ressenti p-2 border-2 border-black rounded-xl font-black text-xs ${mappingColors[k].selected}`;
+                } else {
+                    btn.className = `btn-ressenti p-2 border-2 border-black rounded-xl font-black text-xs ${mappingColors[k].default}`;
+                }
+            });
+        }
+
+        function submitFormMetrics() {
+            const fcRaw = document.getElementById('input-fc').value;
+            if(!fcRaw || !state.currentRessenti) {
+                alert("Veuillez saisir votre FC et votre RPE avant d'enregistrer.");
+                return;
+            }
+
+            state.metrics.push({
+                r: state.currentRoundLabel.replace("Round ", "R"),
+                f: parseInt(fcRaw) * 4,
+                e: state.currentRessenti,
+                s: document.getElementById('input-sensations').value || 'RAS'
+            });
+            
+            state.formSubmittedForCurrentRest = true;
+            document.getElementById('input-fc').value = '';
+            document.getElementById('input-sensations').value = '';
+            setRessenti('');
+
+            const btnSubmit = document.getElementById('btn-submit-metrics');
+            btnSubmit.innerText = "Données enregistrées ! Attente... ⏳";
+            btnSubmit.disabled = true;
+            btnSubmit.className = "w-full bg-slate-700 text-slate-400 font-bold text-xs py-3 border-4 border-black rounded-xl cursor-not-allowed uppercase";
+
+            if(state.restTimeIsFinished) {
+                executeTransitionAfterRestFinished();
+            }
+        }
+
+        function forceAutoSubmitOnTimeout() {
+            state.metrics.push({ 
+                r: state.currentRoundLabel.replace("Round ", "R"), 
+                f: 0, 
+                e: 'Non renseigné', 
+                s: 'Expiré (Pas de saisie)' 
+            });
+            state.formSubmittedForCurrentRest = true;
+            executeTransitionAfterRestFinished();
+        }
+
+        function executeTransitionAfterRestFinished() {
+            clearInterval(state.bgRestInterval);
+            clearInterval(state.backgroundForTimeInterval);
+
+            if (state.workout.type === 'FOR_TIME' && state.currentRound < state.workout.rounds) {
+                state.currentRound++;
+                state.timerElapsedMs = 0; 
+                execute5sCountdown();
+                changeScreen('screen-timer');
+            } else if ((state.workout.type === 'CIRCUIT' || state.workout.type === 'TABATA') && state.timelineIndex < state.timeline.length - 1) {
+                state.timelineIndex++;
+                state.timerRemainingMs = state.timeline[state.timelineIndex].durationSec * 1000;
+                document.getElementById('timer-subinfo').innerText = state.timeline[state.timelineIndex].label;
+                execute5sCountdown();
+                changeScreen('screen-timer');
+            } else {
+                finishWorkout();
+            }
+        }
+
+        function terminateWorkoutEarly() {
+            if(state.timerInterval) clearInterval(state.timerInterval);
+            clearInterval(state.backgroundForTimeInterval);
+            finishWorkout();
+        }
+
+        function finishWorkout() {
+            changeScreen('screen-summary');
+            document.getElementById('summary-type').innerText = state.workout.type;
+            document.getElementById('summary-fc-target').innerText = `${state.workout.fcMinTarget} - ${state.workout.fcMaxTarget} BPM`;
+            
+            const listDetails = document.getElementById('summary-rounds-details');
+            listDetails.innerHTML = '';
+            
+            state.metrics.forEach(m => {
+                const checkFc = (m.f >= state.workout.fcMinTarget && m.f <= state.workout.fcMaxTarget) ? '🟢 (Dans la zone)' : '❌ (Hors zone)';
+                listDetails.innerHTML += `
+                    <div class="bg-slate-900 p-2 rounded border border-slate-800 mb-1 text-white">
+                        <p class="font-bold text-[#CCFF00]">${m.r}</p>
+                        <p>🫀 FC : ${m.f} BPM ${checkFc}</p>
+                        <p>📊 RPE : ${m.e} | Sensation : ${m.s}</p>
+                    </div>
+                `;
+            });
+
+            state.workout.selectedExercises.forEach(selected => {
+                const match = EXERCISES_DATABASE.find(e => e.name === selected.name);
+                if (match) {
+                    match.primary.forEach(id => { if(document.getElementById(id)) document.getElementById(id).classList.add('muscle-primary'); });
+                    match.secondary.forEach(id => { if(document.getElementById(id)) document.getElementById(id).classList.add('muscle-secondary'); });
+                }
+            });
+
+            const optimizedPayload = {
+                id: { f: state.student.firstname, l: state.student.lastname },
+                w: { 
+                    t: state.workout.type, 
+                    min: state.workout.fcMinTarget, 
+                    max: state.workout.fcMaxTarget,
+                    t_eff: state.workout.displayWorkTime,
+                    t_rec: state.workout.displayRestTime,
+                    ex: state.workout.selectedExercises.map(e => ({ n: e.name, q: e.qty }))
+                },
+                m: state.metrics,
+                a: state.amrapRoundsCompleted
+            };
+
+            const finalStringData = JSON.stringify(optimizedPayload);
+            const qrBox = document.getElementById('qrcode-container');
+            qrBox.innerHTML = ''; 
+
+            setTimeout(() => {
+                try {
+                    new QRCode(qrBox, { 
+                        text: finalStringData, 
+                        width: 200, 
+                        height: 200,
+                        correctLevel: QRCode.CorrectLevel.L
+                    });
+                } catch(err) {
+                    console.error("Erreur QR", err);
+                    qrBox.innerHTML = `<div class="text-xs text-red-500 font-bold p-4 text-center">Erreur de rendu.</div>`;
+                }
+            }, 250);
+        }
+
+        // ================= CONSOLE ENSEIGNANT =================
+        function openTeacherDashboard() {
+            changeScreen('screen-teacher');
+            document.getElementById('scan-result').classList.add('hidden');
+            document.getElementById('btn-pdf').disabled = true;
+            document.getElementById('btn-pdf').classList.add('opacity-50', 'cursor-not-allowed');
+            
+            setTimeout(() => {
+                if (!state.html5QrScanner) {
+                    state.html5QrScanner = new Html5Qrcode("qr-reader");
+                }
+                
+                const config = { 
+                    fps: 15, 
+                    qrbox: function(viewfinderWidth, viewfinderHeight) {
+                        const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+                        const size = Math.floor(minEdge * 0.75);
+                        return { width: size, height: size };
+                    },
+                    aspectRatio: 1.0
+                };
+
+                state.html5QrScanner.start(
+                    { facingMode: "environment" },
+                    config,
+                    onQrCodeScanSuccess,
+                    onQrCodeScanFailure
+                ).catch(err => {
+                    state.html5QrScanner.start({ facingMode: "user" }, config, onQrCodeScanSuccess, onQrCodeScanFailure)
+                    .catch(e => {
+                        document.getElementById('qr-reader').innerHTML = `<p class="p-6 text-center text-xs text-red-500 font-bold">⚠️ Autorisation de caméra requise.</p>`;
+                    });
+                });
+            }, 400);
+        }
+
+        function onQrCodeScanSuccess(decodedText) {
+            try {
+                playBip(880, 0.15);
+                
+                if (state.html5QrScanner) {
+                    state.html5QrScanner.stop().then(() => {
+                        document.getElementById('qr-reader').innerHTML = `<div class="p-8 text-center text-sm text-green-400 font-black animate-pulse">✅ FLASH RÉUSSI !</div>`;
+                    }).catch(e => console.log(e));
+                }
+
+                const rawData = JSON.parse(decodedText);
+                let normalizedData = {};
+
+                if (rawData.id) { 
+                    normalizedData = {
+                        student: { firstname: rawData.id.f, lastname: rawData.id.l },
+                        workout: { 
+                            type: rawData.w.t, 
+                            fcMinTarget: rawData.w.min, 
+                            fcMaxTarget: rawData.w.max,
+                            workTimeStr: rawData.w.t_eff || "Non configuré",
+                            restTimeStr: rawData.w.t_rec || "Non configuré",
+                            exercises: rawData.w.ex ? rawData.w.ex.map(e => ({ name: e.n, qty: e.q })) : []
+                        },
+                        metrics: rawData.m.map(item => ({ round: item.r, fc: item.f, ressenti: item.e, sensations: item.s })),
+                        amrap: rawData.a
+                    };
+                } else {
+                    normalizedData = rawData;
+                }
+
+                state.scannedData = normalizedData;
+
+                const resDiv = document.getElementById('scan-result');
+                resDiv.classList.remove('hidden');
+                
+                let roundsHtml = '';
+                normalizedData.metrics.forEach(m => {
+                    const status = (m.fc >= normalizedData.workout.fcMinTarget && m.fc <= normalizedData.workout.fcMaxTarget) ? '🟢 OK' : '❌ HORS ZONE';
+                    roundsHtml += `<div class="mt-1 p-1.5 bg-slate-950 rounded border border-slate-800">
+                        <strong>${m.round} :</strong> ${m.fc} BPM (${status}) | RPE: ${m.ressenti}
+                    </div>`;
+                });
+
+                resDiv.innerHTML = `
+                    <div class="text-[#00FFFF] font-black border-b border-slate-700 pb-1 text-sm">👤 ÉLÈVE : ${normalizedData.student.firstname.toUpperCase()} ${normalizedData.student.lastname.toUpperCase()}</div>
+                    <p class="mt-1"><strong>WOD :</strong> ${normalizedData.workout.type} ${normalizedData.workout.type === 'AMRAP' ? `(${normalizedData.amrap} tours)` : ''}</p>
+                    <p><strong>Zone cible :</strong> ${normalizedData.workout.fcMinTarget}-${normalizedData.workout.fcMaxTarget} BPM</p>
+                    <div class="mt-2 font-bold text-slate-300">Détails physiologiques décodés :</div>
+                    ${roundsHtml}
+                `;
+
+                const btnPdf = document.getElementById('btn-pdf');
+                btnPdf.disabled = false;
+                btnPdf.classList.remove('opacity-50', 'cursor-not-allowed');
+
+            } catch (e) {
+                alert("Erreur de décodage.");
+                openTeacherDashboard();
+            }
+        }
+
+        function onQrCodeScanFailure(error) {}
+
+        function closeTeacherDashboard() {
+            if (state.html5QrScanner && state.html5QrScanner.isScanning) {
+                state.html5QrScanner.stop().then(() => { 
+                    state.html5QrScanner = null;
+                    changeScreen('screen-role'); 
+                }).catch(() => { changeScreen('screen-role'); });
+            } else {
+                state.html5QrScanner = null;
+                changeScreen('screen-role');
+            }
+        }
+
+        function generatePDFReport() {
+            if (!state.scannedData) return;
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const d = state.scannedData;
+
+            doc.setFillColor(15, 23, 42); 
+            doc.rect(0, 0, 210, 38, "F");
+            
+            doc.setFont("Helvetica", "bold");
+            doc.setFontSize(16);
+            doc.setTextColor(255, 255, 255); 
+            doc.text("⚡ EXP-EPS : FICHE D'ÉVALUATION CROSS TRAINING", 15, 16);
+            
+            doc.setFontSize(11);
+            doc.setTextColor(204, 255, 0); 
+            doc.text(`ATHLÈTE : ${d.student.lastname.toUpperCase()} ${d.student.firstname}`, 15, 28);
+            
+            doc.setFontSize(11);
+            doc.setTextColor(20, 30, 50); 
+            
+            doc.setFont("Helvetica", "bold"); doc.text("🏋️ FORME DE TRAVAIL :", 15, 52);
+            doc.setFont("Helvetica", "normal"); doc.text(`${d.workout.type}`, 65, 52);
+            
+            doc.setFont("Helvetica", "bold"); doc.text("🎯 FRÉQUENCE CARDIAQUE CIBLE :", 15, 62);
+            doc.setFont("Helvetica", "normal"); doc.text(`${d.workout.fcMinTarget} à ${d.workout.fcMaxTarget} BPM`, 86, 62);
+
+            doc.setFont("Helvetica", "bold"); doc.text("⏱️ CONFIGURATION DES TEMPS :", 15, 72);
+            doc.setFont("Helvetica", "normal"); doc.text(`Effort : ${d.workout.workTimeStr}   |   Récupération : ${d.workout.restTimeStr}`, 86, 72);
+
+            doc.setLineWidth(0.5); doc.setDrawColor(180, 180, 180);
+            doc.line(15, 80, 195, 80);
+            
+            doc.setFont("Helvetica", "bold"); doc.text("📋 EXERCICES SÉLECTIONNÉS POUR LE WOD", 15, 90);
+            let yEx = 98;
+            
+            if (d.workout.exercises && d.workout.exercises.length > 0) {
+                d.workout.exercises.forEach((ex) => {
+                    let repText = ex.qty ? `: ${ex.qty} répétitions` : " (Travail au temps / Effort Max)";
+                    doc.setFont("Helvetica", "normal");
+                    doc.text(`• ${ex.name}${repText}`, 20, yEx);
+                    yEx += 7;
+                });
+            } else {
+                doc.setFont("Helvetica", "italic");
+                doc.text("Données génériques d'exercices non transmises par le profil.", 20, yEx);
+                yEx += 7;
+            }
+
+            if (d.workout.type === "AMRAP") {
+                doc.setFont("Helvetica", "bold");
+                doc.text(`🔄 PERFORMANCE GLOBALE AMRAP : ${d.amrap} tours complets validés.`, 15, yEx + 3);
+                yEx += 10;
+            }
+
+            doc.line(15, yEx, 195, yEx);
+            let yTable = yEx + 8;
+            
+            doc.setFont("Helvetica", "bold"); doc.text("📊 TOUTES LES DONNÉES PHYSIOLOGIQUES SAISIES EN SÉANCE", 15, yTable);
+            yTable += 10;
+
+            doc.setFillColor(30, 41, 59); doc.rect(15, yTable, 180, 10, "F");
+            doc.setFontSize(10); doc.setTextColor(255, 255, 255); doc.setFont("Helvetica", "bold");
+            doc.text("Série/Bloc", 18, yTable + 6.5);
+            doc.text("FC (BPM)", 50, yTable + 6.5);
+            doc.text("Zone Target", 82, yTable + 6.5);
+            doc.text("Difficulté (RPE)", 122, yTable + 6.5);
+            doc.text("Sensations de l'élève", 154, yTable + 6.5);
+
+            yTable += 10;
+            doc.setFontSize(10);
+            doc.setTextColor(0, 0, 0);
+            
+            d.metrics.forEach((m, index) => {
+                if(index % 2 === 0) { 
+                    doc.setFillColor(245, 247, 250); 
+                    doc.rect(15, yTable, 180, 9, "F"); 
+                }
+                
+                const inZone = (m.fc >= d.workout.fcMinTarget && m.fc <= d.workout.fcMaxTarget);
+                let zoneText = "";
+                if (m.fc === 0) {
+                    zoneText = "Manqué";
+                } else {
+                    zoneText = inZone ? "🟢 OUI" : "❌ HORS ZONE";
+                }
+
+                doc.setFont("Helvetica", "bold"); doc.text(`${m.round}`, 18, yTable + 6);
+                doc.setFont("Helvetica", "normal"); doc.text(m.fc === 0 ? "N/A" : `${m.fc}`, 50, yTable + 6);
+                
+                if(!inZone && m.fc !== 0) doc.setFont("Helvetica", "bold");
+                doc.text(zoneText, 82, yTable + 6);
+                doc.setFont("Helvetica", "normal");
+                
+                doc.text(`${m.ressenti}`, 122, yTable + 6);
+                
+                let sensationText = m.sensations || "RAS";
+                if(sensationText.length > 22) sensationText = sensationText.substring(0, 20) + "...";
+                doc.text(sensationText, 154, yTable + 6);
+                
+                yTable += 9;
+
+                if (yTable > 275) { doc.addPage(); yTable = 20; }
+            });
+
+            doc.save(`Fiche_EPS_Bilan_${d.student.lastname.toUpperCase()}_${d.student.firstname}.pdf`);
+        }
+
+        function resetApp() { location.reload(); }
+    </script>
+</body>
+</html>
